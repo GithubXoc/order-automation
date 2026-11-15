@@ -1,15 +1,9 @@
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from routers import messages, webhook
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-
-from database.database import engine
-from database import database
-
-database.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(messages.router)

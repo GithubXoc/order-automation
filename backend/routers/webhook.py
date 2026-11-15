@@ -2,13 +2,13 @@ import os
 
 from typing import Annotated
 
-from core.config import Config, get_settings
+from core.config import Settings, get_settings
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
 
 router = APIRouter(prefix="/webhook")
 
-SettingsDep = Annotated[Config, Depends(get_settings)]
+SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 @router.get("/")
 def verify_webhook(
