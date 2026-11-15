@@ -2,7 +2,7 @@ import os
 
 from typing import Annotated
 
-from config import Config, get_settings
+from core.config import Config, get_settings
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
 

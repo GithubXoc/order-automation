@@ -3,9 +3,10 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-class Config(BaseSettings):
+class Settings(BaseSettings):
     timezone: ZoneInfo = ZoneInfo("Asia/Tokyo")
     verify_token: str
+    database_url: str
     model_config = SettingsConfigDict(
         env_file=".env", 
         env_file_encoding="utf-8",
@@ -18,7 +19,7 @@ class Config(BaseSettings):
         return self.timezone
 
 @lru_cache
-def get_settings() -> Config:
-    return Config()
+def get_settings() -> Settings:
+    return Settings()
 
-config = get_settings()
+settings = get_settings()

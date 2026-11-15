@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime
-from config import config
+from core.config import settings
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import Column, String, DateTime
+from database.base_metadata import Base
+from sqlalchemy.dialects.postgresql import JSONB
 
 from enum import Enum
 
@@ -12,11 +14,23 @@ class Statuses(str, Enum):
     ANSWERED = "answered"
     SENT = "sent"
 
+class Sender(str, Enum):
+    CUSTOMER = "customer"
+    PAGE = "page"
+    BOT = "bot"
 
-class Messages(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    message: str
-    status: Statuses = Field(default=Statuses.PENDING)
-    answer: str | None = None
-    received_at: datetime = Field(default_factory=lambda: datetime.now(config.tz))
-    answered_at: datetime | None = Field(default=None)
+
+class Messages(Base):
+    __tablename__ = "messages"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    mid = Column(String, unique=True)
+    psid = Column(String, nullable=False)
+    sender = Column(String, nullable=False)
+    kind = Column(String, nullable=False)
+    text = Column(String)
+    attachments = Column(JSONB, default=dict)
+    status = Column(String, default=Statuses.PENDING.value)
+    answer = Column(String, nullable=True)
+    received_at = Column(DateTime(timezone=True), default=lambda: datetime.now(settings.tz))
+    answered_at = Column(DateTime(timezone=True), nullable=True)

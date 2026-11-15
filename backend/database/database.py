@@ -1,35 +1,18 @@
-from typing import Annotated
+from core.config import settings
+from typing import Annotated, Any
 from fastapi import Depends
-from sqlmodel import Session, SQLModel, create_engine, select
+# from sqlmodel import Session, SQLModel, select
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from models.messages import Messages
+### POSTGRESQL
+DATABASE_URL = settings.database_url
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-# check_same_thread=False is required for SQLite with FastAPI
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-def post_message(session: Session, message: str):
-    db_message = Messages(message=message)
-    session.add(db_message)
-    session.commit()
-    session.refresh(db_message)
-    return db_message
-
-def get_messages(session: Session):
-    return session.exec(select(Messages)).all()
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
