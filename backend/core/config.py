@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     timezone: ZoneInfo = ZoneInfo("Asia/Tokyo")
     verify_token: str
     database_url: str
+    app_secret: str
     model_config = SettingsConfigDict(
         env_file=".env", 
         env_file_encoding="utf-8",

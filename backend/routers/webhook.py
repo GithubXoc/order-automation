@@ -1,4 +1,4 @@
-import os
+import json
 import logging
 
 from typing import Annotated
@@ -11,6 +11,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.exc import SQLAlchemyError
+
+import hmac, hashlib
 
 router = APIRouter(prefix="/webhook")
 logger = logging.getLogger(__name__)
@@ -34,9 +36,15 @@ def verify_webhook(
         raise HTTPException(status_code=400, detail="Verification failed") from exc
 
 @router.post("/")
-async def handle_webhook(request: Request, session: SessionDep) -> PlainTextResponse:
+async def handle_webhook(request: Request, session: SessionDep, settings: SettingsDep,) -> PlainTextResponse:
     try:
-        body = await request.json()
+        raw = await request.body()
+        expected = "sha256=" + hmac.new(settings.app_secret.encode(), raw, hashlib.sha256).hexdigest()
+        
+        if not hmac.compare_digest(expected, request.headers.get("X-Hub-Signature-256", "")):
+            raise HTTPException(status_code=403)
+        body = json.loads(raw)
+
         for parsed_event in parse_events(body):
             await run_in_threadpool(create_message, session, parsed_event)
         
@@ -46,7 +54,7 @@ async def handle_webhook(request: Request, session: SessionDep) -> PlainTextResp
         logger.exception("Failed to save webhook messages")
         raise HTTPException(status_code=500, detail="Failed to save webhook messages") from exc
     except Exception as exc:
-        raise HTTPException(status_code=400, detail="Invalid JSON") from exc
+        raise exc
 
 async def inspect_request(request: Request):
     # Read raw bytes or parse JSON safely
