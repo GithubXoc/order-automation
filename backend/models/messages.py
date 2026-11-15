@@ -34,3 +34,7 @@ class Messages(Base):
     answer = Column(String, nullable=True)
     received_at = Column(DateTime(timezone=True), default=lambda: datetime.now(settings.tz))
     answered_at = Column(DateTime(timezone=True), nullable=True)
+
+    @classmethod
+    def create(cls, **kwargs):
+        return cls(**kwargs)

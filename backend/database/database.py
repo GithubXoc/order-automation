@@ -1,8 +1,10 @@
 from collections.abc import Generator
+from typing import Annotated
 
 from core.config import settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from fastapi import Depends
 
 DATABASE_URL = settings.database_url
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
@@ -14,3 +16,5 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+SessionDep = Annotated[Session, Depends(get_db)]

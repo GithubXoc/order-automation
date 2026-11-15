@@ -43,10 +43,18 @@ generated migration, then run `uv run alembic upgrade head`.
 `database/database.py` is the only engine/session setup. Routes can use
 `Depends(get_db)` to get a session that is closed after the request. Writes
 must explicitly commit; closing the session does not commit them.
-Message routes and webhook persistence are not implemented yet.
+The webhook processes customer messages across all entries and messaging events
+in each payload. Echoes and non-message events are skipped.
+Repeated deliveries with the same non-null `mid` are acknowledged without
+inserting another row or changing the original message. Other database failures
+return HTTP 500 so they are not mistaken for invalid JSON.
 
 Run the focused database tests without connecting to PostgreSQL:
 
 ```sh
 uv run python -m unittest discover -s tests
 ```
+
+To also run PostgreSQL persistence tests, set `TEST_DATABASE_URL` to a PostgreSQL
+test database URL with migrations applied. These tests use a temporary `messages` table on an isolated
+connection; they do not change the application's message rows.

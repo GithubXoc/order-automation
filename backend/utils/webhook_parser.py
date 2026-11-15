@@ -13,8 +13,19 @@ class IncomingWebhookEvent:
     timestamp: int | None = None
     raw: dict = field(default_factory=dict)
 
+def parse_events(payload: dict) -> list[IncomingWebhookEvent]:
+    parsed_events = []
+    for entry in payload["entry"]:
+        for event in entry.get("messaging", []):
+            parsed_event = parse_event(event)
+            if parsed_event is not None:
+                parsed_event.raw = payload
+                parsed_events.append(parsed_event)
+    return parsed_events
+
+
 def parse_event(event: dict) -> IncomingWebhookEvent | None:
-    msg = event.get("message")
+    msg = event.get("message", {})
     if not isinstance(msg, dict):
         msg = {}
 
