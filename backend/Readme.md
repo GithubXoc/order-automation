@@ -45,6 +45,9 @@ generated migration, then run `uv run alembic upgrade head`.
 must explicitly commit; closing the session does not commit them.
 The webhook processes customer messages across all entries and messaging events
 in each payload. Echoes and non-message events are skipped.
+Synchronous database writes run in FastAPI's thread pool, not on the async
+event loop. Each write is awaited before the next, so the request's session is
+never used concurrently and the webhook is acknowledged only after processing.
 Repeated deliveries with the same non-null `mid` are acknowledged without
 inserting another row or changing the original message. Other database failures
 return HTTP 500 so they are not mistaken for invalid JSON.
