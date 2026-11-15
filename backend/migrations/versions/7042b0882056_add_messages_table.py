@@ -1,8 +1,8 @@
 """add_messages_table
 
-Revision ID: 15a78048502a
+Revision ID: 7042b0882056
 Revises: 
-Create Date: 2026-11-15 21:06:58.133223
+Create Date: 2026-11-16 01:12:29.952497
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '15a78048502a'
+revision: str = '7042b0882056'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -31,8 +31,10 @@ def upgrade() -> None:
     sa.Column('attachments', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('status', sa.String(), nullable=True),
     sa.Column('answer', sa.String(), nullable=True),
+    sa.Column('sent_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('received_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('answered_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('raw', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('mid')
     )

@@ -3,6 +3,7 @@ from datetime import datetime
 from core.config import settings
 
 from sqlalchemy import Column, String, DateTime
+from sqlalchemy.orm import validates
 from database.base_metadata import Base
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -32,8 +33,16 @@ class Messages(Base):
     attachments = Column(JSONB, default=dict)
     status = Column(String, default=Statuses.PENDING.value)
     answer = Column(String, nullable=True)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
     received_at = Column(DateTime(timezone=True), default=lambda: datetime.now(settings.tz))
     answered_at = Column(DateTime(timezone=True), nullable=True)
+    raw = Column(JSONB)
+
+    @validates("sender")
+    def validate_sender(self, key, value):
+        if value not in {sender.value for sender in Sender}:
+            raise ValueError(f"Invalid sender: {value}")
+        return value
 
     @classmethod
     def create(cls, **kwargs):

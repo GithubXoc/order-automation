@@ -12,6 +12,8 @@ class IncomingWebhookEvent:
     quick_reply: str | None = None
     timestamp: int | None = None
     raw: dict = field(default_factory=dict)
+    sender: str = "customer"
+    is_echo: bool = False
 
 def parse_events(payload: dict) -> list[IncomingWebhookEvent]:
     parsed_events = []
@@ -19,13 +21,13 @@ def parse_events(payload: dict) -> list[IncomingWebhookEvent]:
         for event in entry.get("messaging", []):
             parsed_event = parse_event(event)
             if parsed_event is not None:
-                parsed_event.raw = payload
                 parsed_events.append(parsed_event)
     return parsed_events
 
 
 def parse_event(event: dict) -> IncomingWebhookEvent | None:
     msg = event.get("message", {})
+    sender = "customer"
     if not isinstance(msg, dict):
         msg = {}
 
@@ -35,7 +37,7 @@ def parse_event(event: dict) -> IncomingWebhookEvent | None:
     is_echo = msg.get("is_echo", False)
 
     if is_echo:
-        return None
+        sender = "page"
 
     psid = event["recipient"]["id"] if is_echo else event["sender"]["id"]
 
@@ -53,4 +55,6 @@ def parse_event(event: dict) -> IncomingWebhookEvent | None:
         quick_reply=(msg.get("quick_reply") or {}).get("payload"),
         timestamp=event.get("timestamp"),
         raw=event,
+        sender=sender,
+        is_echo=is_echo,
     )
